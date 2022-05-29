@@ -40,7 +40,7 @@ def cost_function(y_, x_, theta_) -> float:
     cost_ = -(1/m) * (y_.T @ np.log(sig_) + (one_vec - y_).T @ np.log(one_vec - sig_))
 
     # return value of the cost function as a scalar
-    return cost_.item()
+    return cost_
 
 
 def cost_func_scalar(sig_, y_) -> float:
