@@ -17,10 +17,11 @@ was no need really to use seaborn library here.
 """
 
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
-from classification_functions import *
+from classification_numbers.tools.classification_functions import sigmoid
 
 
 def fetch_data() -> pd.DataFrame:
@@ -30,11 +31,83 @@ def fetch_data() -> pd.DataFrame:
     :return: DataFrame
     """
     # read the ex2data1.txt file as general table containing also approval or denial as 1 or 0 respectively
-    exam_data = pd.read_csv("ex2data1.txt", sep=",", header=None)
+    exam_data = pd.read_csv("data/ex2data1.txt", sep=",", header=None)
     # name the columns
     exam_data.columns = ["Exam 1 score", "Exam 2 score", "Approval"]
 
     return exam_data
+
+
+def cost_function(y_, x_, theta_) -> float:
+    """
+    The function calculates cost function for given data x_ and weights theta_. The function is fully vectorized so that
+    it performs operations on matrices only avoiding loops and, therefore, speeding up the calculation.
+
+    :param theta_: n x 1 vector
+    :param x_: m x n matrix
+    :param y_: m x 1 vector
+    :return: scalar
+    """
+
+    # number of examples in the set
+    m = len(y_)
+
+    # calculate hypothesis
+    sig_ = sigmoid(x_ @ theta_)
+
+    # column vector of ones
+    one_vec = np.ones((m, 1), dtype=int)
+
+    # calculate cost function
+    cost_ = -(1/m) * (y_.T @ np.log(sig_) + (one_vec - y_).T @ np.log(one_vec - sig_))
+
+    # return value of the cost function as a scalar
+    return cost_
+
+
+def cost_func_scalar(sig_, y_) -> float:
+    """
+    Calculate cost function value for given sigmoid (hypothesis) value and given label 1 or 0.
+
+    :param sig_: float between 0 and 1
+    :param y_: label, 0 or 1
+    :return: value of cost function
+    """
+
+    return -y_ * np.log(sig_) - (1 - y_) * np.log(1 - sig_)
+
+
+def cost_gradient(theta_, x_, y_):
+    """
+    Calculates gradient of the cost function using fully vectorised form of cost gradient.
+
+    :param theta_: n x 1 vector
+    :param x_: m x n matrix
+    :param y_: m x 1 vector
+    :return: scalar
+    """
+
+    # calculate hypothesis
+    sig_ = sigmoid(x_ @ theta_)
+    # number of examples in the set
+    m = len(y_)
+    # calculate gradient
+    grad_ = (1/m) * x_.T @ (sig_ - y_)
+
+    return grad_
+
+
+def theta_update(theta_, alpha_, cost_grad_):
+    """
+    Calculates more optimal theta than the given one using gradient of the cost function (cost_grad_) and the learning
+    rate (alpha_).
+
+    :param theta_: n x 1 vector
+    :param alpha_: scalar
+    :param cost_grad_: n x 1 vector
+    :return: n x 1 vector
+    """
+    return theta_ - alpha_ * cost_grad_
 
 
 def grad_descent(x_, y_, theta_, alpha_=0.1, epsilon_=0.1):
